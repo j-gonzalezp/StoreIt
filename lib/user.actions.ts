@@ -5,7 +5,7 @@ import { appwriteConfig } from "@/lib/appwrite/config";
 import { Query, ID } from "node-appwrite";
 import { parseStringify } from "@/lib/utils";
 import { cookies } from "next/headers";
-
+import { avatarPlaceholderUrl } from "@/constants";
 import { redirect } from "next/navigation";
 
 const getUserByEmail = async (email: string) => {
@@ -59,7 +59,7 @@ export const createAccount = async ({
       {
         fullName,
         email,
-        avatar: "",
+        avatar: avatarPlaceholderUrl,
         accountId,
       },
     );
@@ -95,21 +95,23 @@ export const verifySecret = async ({
 
 export const getCurrentUser = async () => {
   try {
-    const { databases, account } = await createSessionClient();
-
+    // First, verify that the session exists and is valid
+    const { account } = await createSessionClient();
     const result = await account.get();
-
+    
+    // Then use the admin client for database operations
+    const { databases } = await createAdminClient();
+    
     const user = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.usersCollectionId,
-      [Query.equal("accountId", result.$id)],
+      [Query.equal("accountId", result.$id)]
     );
-
-    if (user.total <= 0) return null;
-
-    return parseStringify(user.documents[0]);
+    
+    return user.documents[0];
   } catch (error) {
-    console.log(error);
+    console.error("Error getting current user:", error);
+    return null;
   }
 };
 
@@ -141,5 +143,3 @@ export const signInUser = async ({ email }: { email: string }) => {
     handleError(error, "Failed to sign in user");
   }
 };
-
-
