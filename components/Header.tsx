@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { Button } from './ui/button'
 import Search from './Search'
 import FileUploader from './FileUploader'
-import { signOutUser } from '@/lib/user.actions'
+import { signOutUser } from '@/lib/actions/user.actions'
 
 const Header = () => {
     return (
