@@ -2,12 +2,14 @@
 
 import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { cn, convertFileToUrl, getFileType } from '@/lib/utils'
+import { cn, convertFileToUrl, getFileType, } from '@/lib/utils'
 import { Button } from './ui/button'
 import Image from 'next/image'
 import Thumbnail from './Thumbnail'
 import { MAX_FILE_SIZE } from '@/constants'
 import { toast } from 'sonner'
+import { usePathname } from 'next/navigation'
+import { uploadFile } from '@/lib/actions/file.actions'
 
 interface Props {
   ownerId: string;
@@ -16,7 +18,7 @@ interface Props {
 }
 
 const FileUploader = ({ ownerId, accountId, className }: Props) => {
-
+  const path = usePathname()
   const [files, setFiles] = useState<File[]>([])
   const handleRemoveFile = (e: React.MouseEvent<HTMLImageElement, MouseEvent>, fileName: string) => {
     e.stopPropagation()
@@ -37,11 +39,15 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
             </span>
           </p>
         })
-//por acá
-        
       }
+      return uploadFile({file,ownerId,accountId,path}).then((uploadedFile)=>{
+        if(uploadedFile){
+          setFiles((prevFiles)=>prevFiles.filter((f)=>f.name!==file.name))
+        }
+      })
     })
-  }, [])
+  await Promise.all(uploadPromises)
+  }, [ownerId, accountId, path])
 
   
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })

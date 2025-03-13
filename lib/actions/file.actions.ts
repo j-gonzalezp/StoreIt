@@ -1,6 +1,6 @@
 "use server"
 import { UploadFileProps } from "@/types"
-import { InputFile } from "node-appwrite"
+import { InputFile } from "node-appwrite/file"
 import { ID, Models, Query } from "node-appwrite"
 import { appwriteConfig, } from "../appwrite/config"
 import { getFileType, constructFileUrl, parseStringify } from "../utils"
@@ -23,11 +23,11 @@ export const uploadFile = async ({ file, ownerId, accountId, path }: UploadFileP
             name: bucketFile.name,
             url: constructFileUrl(bucketFile.$id),
             extension: getFileType(bucketFile.name).extension,
-            size: bucketFile.sizeOriginal,
+            size: String(bucketFile.sizeOriginal),
             owner: ownerId,
             accountId,
-            user: [],
-            bucketFileId: bucketFile.$id
+            bucketFileId: bucketFile.$id,
+         
         }
         const newFile = await databases.createDocument(
             appwriteConfig.databaseId,
