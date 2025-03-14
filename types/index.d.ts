@@ -8,11 +8,6 @@ export declare interface ActionType {
   value: string;
 }
 
-export declare interface ActionType {
-  label: string;
-  icon: string;
-  value: string;
-}
 
 export declare interface SearchParamProps {
   params?: Promise<SegmentParams>;
@@ -143,3 +138,4 @@ export declare interface ShareInputProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: (email: string) => void;
 }
+
