@@ -28,6 +28,9 @@ import { constructDownloadUrl } from '@/lib/utils'
 import Link from 'next/link'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
+import { usePathname } from 'next/navigation'
+import { renameFile } from '@/lib/actions/file.actions'
+import { FileDetails } from './ActionsModalContent'
 
 
 
@@ -37,16 +40,34 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [action, setAction] = useState<ActionType | null>(null)
     const [name, setName] = useState(file.name)
-    const [isLoading,setIsLoading]=useState(false)
-    const closeAllModals=()=>{
+    const [isLoading, setIsLoading] = useState(false)
+    const path = usePathname
+
+    const closeAllModals = () => {
         setIsModalOpen(false)
         setIsDropdownOpen(false)
         setAction(null)
         setName(file.name)
         //setEmails([])
     }
-    const handleAction =async()=>{
+    const handleAction = async () => {
+        if (!action) return
+        setIsLoading(true)
+        let success = false
+        const actions = {
+            rename: () => renameFile({
+                fileId: file.$id,
+                name,
+                extension: file.extension,
+                path
+            }),
+            share: () => console.log("share"),
+            delete: () => console.log("delete")
 
+        }
+        success = await actions[action.value as keyof typeof action]()
+        if(success) closeAllModals()
+            setIsLoading(false)
     }
 
     const renderDialogContent = () => {
@@ -59,11 +80,13 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
                 </DialogTitle>
                 <DialogDescription>
                     {value === 'rename' && (
-                        <Input type="text" value={name} onChange={(e)=>setName(e.target.value)}/>
+                        <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
                     )}
+                    {value === 'details' &&
+                    <FileDetails file={file}/>}
                 </DialogDescription>
             </DialogHeader>
-            {['rename', 'delete', 'share'].includes(value)&&(
+            {['rename', 'delete', 'share'].includes(value) && (
                 <DialogFooter className="flex flex-col gap-3 md:flex-row">
                     <Button onClick={closeAllModals} className='modal-cancel-button'>
                         Cancel
@@ -71,8 +94,8 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
                     <Button onClick={handleAction} className='modal-submit-button'>
                         <p className='capitalize'>{value}
                             {isLoading && <Image src="/assets/icons/looader.svg" alt="loader" width={24}
-                             height={24}
-                             className='animate-spin'/>}
+                                height={24}
+                                className='animate-spin' />}
                         </p>
                     </Button>
                 </DialogFooter>
@@ -92,7 +115,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
                     {actionsDropdownItems.map((actionItem) => (
                         <DropdownMenuItem key={actionItem.value} className="shad-dropdown-item"
                             onClick={() => {
-                                setACtion(actionItem)
+                                setAction(actionItem)
                                 if (['rename', 'share', 'delete', 'details'].includes(actionItem.value)) { setIsModalOpen(true) }
                             }}>
                             {actionItem.value === 'download' ?

@@ -1,5 +1,5 @@
 "use server";
-import { UploadFileProps } from "@/types";
+import { RenameFileProps, UploadFileProps } from "@/types";
 import { InputFile } from "node-appwrite/file";
 import { ID, Models, Query } from "node-appwrite";
 import { appwriteConfig } from "../appwrite/config";
@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/actions/user.actions";
 import { createAdminClient } from "../appwrite";
 import { error } from "console";
+import { stringify } from "querystring";
 
 
 const handleError = (error: unknown, message: string) => {
@@ -72,3 +73,33 @@ export const getFiles = async () => {
         handleError(error, "Failed to get files");
     }
 };
+
+export const renameFile = async ({
+    fileId,
+    name,
+    extension,
+    path,
+  }: RenameFileProps) => {
+    const { databases } = await createAdminClient();
+  
+    try {
+      const newName = `${name}.${extension}`;
+      const updatedFile = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.filesCollectionId,
+        fileId,
+        {
+          name: newName,
+        },
+      );
+  
+      if (typeof path === 'string') {
+        revalidatePath(path);
+      } else {
+        revalidatePath('/');
+      }
+      return parseStringify(updatedFile);
+    } catch (error) {
+      handleError(error, "Failed to rename file");
+    }
+  };
